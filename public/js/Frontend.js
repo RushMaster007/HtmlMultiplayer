@@ -28,6 +28,7 @@ let sequenceNumber = 0
 
 let userName = ''
 
+let isDead = false
 
 //#endregion vars
 
@@ -49,6 +50,7 @@ socket.on('updatePlayers', (backEndPlayers) => {
     
     handleBackendPlayers(backEndPlayers)   
 
+    //TODO
     clientSidePrediction(KeyInputMap)
     
     drawMovableObjects()
@@ -106,6 +108,7 @@ function moveFrontEndPlayer(id, BACKENDPLAYER, backEndPlayers){
             return backEndPlayers[id].sequenceNumber === input.sequenceNumber
         })
 
+        //TODO
         if(lastBackendInputIndex >= 0)
             playerInputs.splice(0, lastBackendInputIndex + 1)
             playerInputs.forEach(input => { //Predict all the 'so far' unhandled movenemts on the clientside
@@ -120,8 +123,15 @@ function deleteFrontEndPlayers(backEndPlayers){
         
         if(!backEndPlayers[id]){  
             delete frontEndPlayers[id]
+            if(id == socket.id){
+                clientDied()
+            }
         }
     }
+}
+
+function clientDied(){
+    isDead = true
 }
 
 ///Calculates new position the own player should be on
@@ -201,10 +211,17 @@ function drawStaticObjects(){
 
 ///Draws the entire screen for the user
 function drawMovableObjects(){
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)   
+    ctx.fillStyle = '#333'
+    ctx.fillRect(0,0,1700,900)    
     drawPlayers()
     drawProjectiles()
     drawStaticObjects()
+    if(isDead){
+        ctx.fillStyle = '#FFFFFFAA'
+        ctx.fillRect(0,0,1700,900)
+    }
+
 }
 
 ///Draws all frontEndPlayers

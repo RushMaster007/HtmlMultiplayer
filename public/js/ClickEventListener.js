@@ -10,8 +10,8 @@ addEventListener('click', (event) => {
     )
     
     socket.emit('fire', {
-        x: playerPosition.x , 
-        y: playerPosition.y ,
+        // x: playerPosition.x , 
+        // y: playerPosition.y ,
         angle
     })
 })

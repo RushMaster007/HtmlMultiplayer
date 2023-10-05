@@ -13,7 +13,7 @@ const server = http.createServer(app)
 const { Server } = require('socket.io')
 const io = new Server(server, {pingInterval: 2000, pingTimeout: 5000})
 
-const port = 3000
+const port = 3001
 
 //#endregion serverini
 
@@ -33,7 +33,19 @@ setInterval(() =>{
     updateProjectiles()
     io.emit('updatePlayers', backEndPlayers)
     io.emit('updateProjectiles', backEndProjectiles)
+    
 }, 15) 
+
+//FireInterval
+setInterval(() =>{
+    for( const id in backEndPlayers){
+        try {            
+            backEndPlayers[id].canFire = true
+        } catch (error) {
+            console.error(error)
+        }
+    }
+}, 150)
 
 
 //#region serverIni
@@ -58,10 +70,11 @@ io.on('connection', (socket) =>{
     PLAYERRADIUS = 10
     console.log('a user connected')
     backEndPlayers[socket.id] = {
-        x: 500 * Math.random() ,
-        y: 500 * Math.random() ,
+        x: 1500 * Math.random() +100,
+        y: 700 * Math.random() +100,
         color: `hsl(${360 * Math.random()}, 100%, 50%)` ,
-        sequenceNumber: 0//set to check all inputs not handled so far
+        sequenceNumber: 0,//set to check all inputs not handled so far
+        canFire: false
     }
 
     //socket for single client io for all
@@ -80,21 +93,33 @@ io.on('connection', (socket) =>{
         socket.emit('initStaticObjects', backEndStaticObjects)
     })
 
-    socket.on('fire', ({x, y, angle}) =>{
-        projectileId++;
+    socket.on('fire', ({angle}) =>{
+        // console.log(backEndPlayers[socket.id].canFire)
+        try {
+            if(backEndPlayers[socket.id].canFire == false)
+            return
+            backEndPlayers[socket.id].canFire = false
+            const x = backEndPlayers[socket.id].x  
+            const y = backEndPlayers[socket.id].y  
 
-        const velocity = {
+            projectileId++;
 
-            x: Math.cos(angle) * 15 ,
-            y: Math.sin(angle) * 15
+            const velocity = {
+
+                x: Math.cos(angle) * 15 ,
+                y: Math.sin(angle) * 15
+            }
+
+            backEndProjectiles[projectileId] = {
+                x,
+                y,
+                velocity,
+                playerId: socket.id
+            }  
+        } catch (error) {
+           console.error(error) 
         }
-
-        backEndProjectiles[projectileId] = {
-            x,
-            y,
-            velocity,
-            playerId: socket.id
-        }
+        
     })
 
     socket.on('disconnect', (reason) => {
@@ -118,11 +143,19 @@ io.on('connection', (socket) =>{
 
         //Move
         // if(collosionDetection(backEndPlayers[socket.id].x + (PLAYERX * SPEED)), backEndPlayers[socket.id].y += PLAYERY * SPEED){
-            backEndPlayers[socket.id].x += PLAYERX * SPEED 
-            backEndPlayers[socket.id].y += PLAYERY * SPEED
+            if(isInGameArea(backEndPlayers[socket.id].x + PLAYERX * SPEED,backEndPlayers[socket.id].y + PLAYERY * SPEED)){
+                backEndPlayers[socket.id].x += PLAYERX * SPEED 
+                backEndPlayers[socket.id].y += PLAYERY * SPEED
+            }
         // }
     })
 })
+
+function isInGameArea(GOTOX,GOTOY){
+    if(GOTOX < 10 || GOTOX >1700 || GOTOY < 10 || GOTOY > 900)
+        return false
+    return true
+}
 
 //#endregion userIni
 
@@ -166,7 +199,8 @@ function hitdetection(id){
             backEndProjectiles[id].playerId !== playerId){
             delete backEndProjectiles[id]
             delete backEndPlayers[playerId]
-            console.log(DISTANCE)
+            // socket[playerId].emit('died','test')
+            // console.log(DISTANCE)
             break
         }
     }
@@ -179,7 +213,7 @@ function hitdetection(id){
 
 ///Builds all the static objects for the level
 function buildMapObjects(){
-    createStatcObject({x:100,y:100,width:100,height:100,color:'white',class:'Tank'})
+    // createStatcObject({x:100,y:100,width:100,height:100,color:'white',class:'Tank'})
 }
 
 ///Creates an static object
