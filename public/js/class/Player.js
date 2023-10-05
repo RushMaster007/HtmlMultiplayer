@@ -10,9 +10,12 @@ class Player{
 
     draw(){
         ctx.font = '12px sans-serif'
-        ctx.fillStyle = 'black'
+        ctx.fillStyle = 'white'
         ctx.fillText(this.username, this.x-10, this.y+20)
         ctx.save()
+
+        // ctx.shadowColor = this.color
+        // ctx.shadowBlur = 20
 
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.radius * window.devicePixelRatio, Math.PI * 2, false)
