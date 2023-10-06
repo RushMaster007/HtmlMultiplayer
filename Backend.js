@@ -67,31 +67,18 @@ app.get('/', (req, res) =>{
 
 //Check if new User connects 
 io.on('connection', (socket) =>{
-    PLAYERRADIUS = 10
     console.log('a user connected')
-    backEndPlayers[socket.id] = {
-        x: 1500 * Math.random() +100,
-        y: 700 * Math.random() +100,
-        color: `hsl(${360 * Math.random()}, 100%, 50%)` ,
-        sequenceNumber: 0,//set to check all inputs not handled so far
-        canFire: false
-    }
+    
+
+    socket.on('login', (username) => {
+        createUser(socket.id, username)
+        initCanvas(socket)
+    })
 
     //socket for single client io for all
     io.emit('updatePlayers', backEndPlayers)
 
-    socket.on('initCanvas', ({width, height, devicePixelRatio}) =>{
-        backEndPlayers[socket.id].canvas ={
-            width,
-            height
-        }
-        
-        backEndPlayers[socket.id].radius = devicePixelRatio * PLAYERRADIUS //Set player heiht
-
-
-        //TODO may has to be moved after lvl implimentation
-        socket.emit('initStaticObjects', backEndStaticObjects)
-    })
+    
 
     socket.on('fire', ({angle}) =>{
         // console.log(backEndPlayers[socket.id].canFire)
@@ -151,6 +138,33 @@ io.on('connection', (socket) =>{
     })
 })
 
+function createUser(socketid, username){
+    backEndPlayers[socketid] = {
+        x: 1500 * Math.random() +100,
+        y: 700 * Math.random() +100,
+        color: `hsl(${360 * Math.random()}, 100%, 50%)` ,
+        sequenceNumber: 0,//set to check all inputs not handled so far
+        canFire: false,
+        userName: username.slice(0,20),
+        radius: 10
+    }
+}
+
+function initCanvas(socket){
+    socket.on('initCanvas', ({width, height, devicePixelRatio}) =>{
+        backEndPlayers[socket.id].canvas ={
+            width,
+            height
+        }
+        
+        // backEndPlayers[socket.id].radius = devicePixelRatio * PLAYERRADIUS //Set player heiht
+
+
+        //TODO may has to be moved after lvl implimentation
+        socket.emit('initStaticObjects', backEndStaticObjects)
+    })
+}
+
 function isInGameArea(GOTOX,GOTOY){
     if(GOTOX < 10 || GOTOX >1700 || GOTOY < 10 || GOTOY > 900)
         return false
@@ -195,10 +209,11 @@ function hitdetection(id){
                                 backEndProjectiles[id]?.y - backEndPlayer?.y)
         
         //TODO: backEndProjectiles[id].radius has to be added 
+        // console.log(backEndProjectiles[id].playerId + ' '+backEndPlayer.radius)
         if (DISTANCE <  5 + backEndPlayer.radius && 
             backEndProjectiles[id].playerId !== playerId){
             delete backEndProjectiles[id]
-            delete backEndPlayers[playerId]
+            playerDied(playerId)
             // socket[playerId].emit('died','test')
             // console.log(DISTANCE)
             break
@@ -207,6 +222,19 @@ function hitdetection(id){
 }
 
 //#endregion projectiles
+
+//#region players
+
+function playerDied(playerId){   
+    const BACKENDPLAYERNAME = backEndPlayers[playerId].userName
+    delete backEndPlayers[playerId]
+    setTimeout(() =>{
+        createUser(playerId, BACKENDPLAYERNAME)    
+        console.log('respawn')    
+    }, 1000)
+}
+
+//#endregion players
 
 
 //#region staticBody

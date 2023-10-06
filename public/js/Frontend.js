@@ -26,7 +26,7 @@ const playerInputs = []
 
 let sequenceNumber = 0
 
-let userName = ''
+let userName = undefined
 
 let isDead = false
 
@@ -34,12 +34,27 @@ let isDead = false
 
 
 //#region init
-
 socket.on('connect', () =>{
     socket.emit('initCanvas', {width: canvas.width, height: canvas.height, devicePixelRatio, userName})
 })
 
+///Login to create a user
+document.querySelector('#usernameForm').addEventListener('submit', (event) =>{
+    event.preventDefault()
+    userName = document.querySelector('#userNameInput').value
+    socket.emit('login', userName)    
+    document.querySelector('#loginOverlay').style.display = 'none'
+})
+
 //#endregion init
+
+//#region gamecicle
+
+function clientDied(){
+    isDead = true
+}
+
+//#endregion gameciyle
 
 
 //#region player
@@ -86,9 +101,12 @@ function addFrontEndPlayer(id, BACKENDPLAYER){
     , y:BACKENDPLAYER.y
     , radius:10
     , color: BACKENDPLAYER.color
-    , username:('User: '+id)
+    , username:BACKENDPLAYER.userName
     , sequenceNumber: BACKENDPLAYER.sequenceNumber
 })
+    if(id == socket.id){
+        isDead = false
+    }
 }
 
 ///Moves all the known player
@@ -128,10 +146,6 @@ function deleteFrontEndPlayers(backEndPlayers){
             }
         }
     }
-}
-
-function clientDied(){
-    isDead = true
 }
 
 ///Calculates new position the own player should be on
