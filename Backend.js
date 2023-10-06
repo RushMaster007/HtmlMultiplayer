@@ -1,3 +1,5 @@
+require('./public/js/class/Player.js')
+
 //#region vars
 
 //#region serverini
@@ -5,7 +7,6 @@
 const express = require('express')
 const { stat } = require('fs')
 const app = express()
-// const { Socket } = require('engine.io')
 
 //Socket.io setup
 const http = require('http')
@@ -17,12 +18,12 @@ const port = 3001
 
 //#endregion serverini
 
+//object lists
 const backEndPlayers = {}
 const backEndProjectiles = {}
 const backEndStaticObjects = {}
 
 let staticObjectsId = 0
-
 let projectileId = 0
 
 //#endregion vars
@@ -32,11 +33,9 @@ let projectileId = 0
 setInterval(() =>{    
     updateProjectiles()
     io.emit('updatePlayers', backEndPlayers)
-    io.emit('updateProjectiles', backEndProjectiles)
-    
 }, 15) 
 
-//FireInterval
+//Fire interval
 setInterval(() =>{
     for( const id in backEndPlayers){
         try {            
@@ -101,7 +100,8 @@ io.on('connection', (socket) =>{
                 x,
                 y,
                 velocity,
-                playerId: socket.id
+                playerId: socket.id,
+                bounces: 1
             }  
         } catch (error) {
            console.error(error) 
@@ -130,7 +130,7 @@ io.on('connection', (socket) =>{
 
         //Move
         // if(collosionDetection(backEndPlayers[socket.id].x + (PLAYERX * SPEED)), backEndPlayers[socket.id].y += PLAYERY * SPEED){
-            if(isInGameArea(backEndPlayers[socket.id].x + PLAYERX * SPEED,backEndPlayers[socket.id].y + PLAYERY * SPEED)){
+            if(isPositionValid(backEndPlayers[socket.id].x + PLAYERX * SPEED,backEndPlayers[socket.id].y + PLAYERY * SPEED)){
                 backEndPlayers[socket.id].x += PLAYERX * SPEED 
                 backEndPlayers[socket.id].y += PLAYERY * SPEED
             }
@@ -139,6 +139,7 @@ io.on('connection', (socket) =>{
 })
 
 function createUser(socketid, username){
+    test = new Player()
     backEndPlayers[socketid] = {
         x: 1500 * Math.random() +100,
         y: 700 * Math.random() +100,
@@ -165,7 +166,8 @@ function initCanvas(socket){
     })
 }
 
-function isInGameArea(GOTOX,GOTOY){
+function isPositionValid(GOTOX,GOTOY){
+    //TODO get dinamic valid position
     if(GOTOX < 10 || GOTOX >1700 || GOTOY < 10 || GOTOY > 900)
         return false
     return true
@@ -176,6 +178,7 @@ function isInGameArea(GOTOX,GOTOY){
 
 //#region projectiles
 
+///updates all the projectiles
 function updateProjectiles(){
     for( const id in backEndProjectiles){
         if (!backEndProjectiles)
@@ -183,20 +186,34 @@ function updateProjectiles(){
         updateProjectilePosition(id)
         hitdetection(id)
     }
+    io.emit('updateProjectiles', backEndProjectiles)  
 }
 
 function updateProjectilePosition(id){
     backEndProjectiles[id].x += backEndProjectiles[id].velocity.x
     backEndProjectiles[id].y += backEndProjectiles[id].velocity.y
-    
-    //TODO: has to be deleted, if it leafes the Arena, or hits not if it lefts the screen
     const PROJECTILERADIUS = 5
-    if(backEndProjectiles[id].x -PROJECTILERADIUS >= backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.width ||
-        backEndProjectiles[id].x + PROJECTILERADIUS <= 0 ||
-        backEndProjectiles[id].y -PROJECTILERADIUS >= backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.height ||
+    // console.log(backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.width) // height
+    if(backEndProjectiles[id].x -PROJECTILERADIUS >= 1700 ||
+        backEndProjectiles[id].x + PROJECTILERADIUS <= 0 ){
+            if(backEndProjectiles[id].bounces > 0){
+                backEndProjectiles[id].velocity.x = -backEndProjectiles[id].velocity.x;
+                backEndProjectiles[id].bounces--;
+            }
+            else {
+                delete backEndProjectiles[id];
+                console.log('bounce')
+            }
+        }
+    else if(backEndProjectiles[id].y -PROJECTILERADIUS >= 900 ||
         backEndProjectiles[id].y + PROJECTILERADIUS <= 0){
-        if(backEndProjectiles[id])
-            delete backEndProjectiles[id]
+        if(backEndProjectiles[id].bounces > 0){
+            backEndProjectiles[id].velocity.y = -backEndProjectiles[id].velocity.y;
+            backEndProjectiles[id].bounces--;
+        }
+        else {
+            delete backEndProjectiles[id];
+        }
     }
 }
 
@@ -222,6 +239,7 @@ function hitdetection(id){
 }
 
 //#endregion projectiles
+
 
 //#region players
 
