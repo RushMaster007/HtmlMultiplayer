@@ -1,19 +1,22 @@
+const express = require("express");
+// const { stat } = require("fs");
+// const { Socket } = require('engine.io')
+const environment = require("./environments/environment");
+const http = require("http");
+const { Server } = require("socket.io");
+
 //#region vars
 
 //#region serverini
 
-const express = require("express");
-const { stat } = require("fs");
 const app = express();
-// const { Socket } = require('engine.io')
 
 //Socket.io setup
-const http = require("http");
 const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server, { pingInterval: 2000, pingTimeout: 5000 });
-
-const port = 3001;
+const io = new Server(server, {
+  pingInterval: environment.pingInterval,
+  pingTimeout: environment.pingTimeout,
+});
 
 //#endregion serverini
 
@@ -47,14 +50,14 @@ setInterval(() => {
 
 //#region serverIni
 
-app.use(express.static("../userFrontend"));
+app.use(express.static(environment.frontendFolder));
 
-server.listen(port, () => {
-  console.log("Listen on Port: " + port);
+server.listen(environment.port, () => {
+  console.log("Listen on Port: " + environment.port);
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/../userFrontend/index.html");
+  res.sendFile(__dirname + environment.frontendFolder);
 });
 
 //#endregion serverIni

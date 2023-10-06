@@ -2,7 +2,7 @@
   "name": "html-multiplayer",
   "version": "0.0.0",
   "scripts": {
-    "run": "nodemon ./backend.js"
+    "run": "nodemon ./server/backend.js"
   },
   "private": true,
   "dependencies": {
