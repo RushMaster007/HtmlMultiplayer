@@ -5,6 +5,7 @@ class Projectile{
         this.radius = radius
         this.color = color
         this.velocity = velocity
+        this.bounces = 2
     }
 
     draw(){
