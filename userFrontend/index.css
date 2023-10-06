@@ -8,3 +8,35 @@ body {
   justify-items: center;
   justify-content: center;
 }
+
+#loginOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+#userNameInput {
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: #475569;
+  color: #cbd5e1;
+}
+
+#startButton {
+  padding: 8px 20px;
+  border-radius: 100px;
+  border: none;
+  background-image: linear-gradient(
+    to right,
+    rgb(6, 182, 212),
+    rgb(59, 130, 246)
+  );
+  color: white;
+  cursor: pointer;
+}
