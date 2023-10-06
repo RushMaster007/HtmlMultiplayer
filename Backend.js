@@ -101,7 +101,8 @@ io.on('connection', (socket) =>{
                 x,
                 y,
                 velocity,
-                playerId: socket.id
+                playerId: socket.id,
+                bounces: 2
             }  
         } catch (error) {
            console.error(error) 
@@ -189,14 +190,29 @@ function updateProjectilePosition(id){
     backEndProjectiles[id].x += backEndProjectiles[id].velocity.x
     backEndProjectiles[id].y += backEndProjectiles[id].velocity.y
     
-    //TODO: has to be deleted, if it leafes the Arena, or hits not if it lefts the screen
+    //TODO: has to be deleted, if it leaves the Arena, or hits not if it lefts the screen
     const PROJECTILERADIUS = 5
     if(backEndProjectiles[id].x -PROJECTILERADIUS >= backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.width ||
-        backEndProjectiles[id].x + PROJECTILERADIUS <= 0 ||
-        backEndProjectiles[id].y -PROJECTILERADIUS >= backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.height ||
+        backEndProjectiles[id].x + PROJECTILERADIUS <= 0 ){
+            console.log(backEndProjectiles.bounces);
+            if(backEndProjectiles[id].bounces > 0){
+                backEndProjectiles[id].velocity.x = -backEndProjectiles[id].velocity.x;
+                backEndProjectiles[id].bounces--;
+            }
+            else {
+                delete backEndProjectiles[id];
+                console.log('bounce')
+            }
+        }
+    else if(backEndProjectiles[id].y -PROJECTILERADIUS >= backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.height ||
         backEndProjectiles[id].y + PROJECTILERADIUS <= 0){
-        if(backEndProjectiles[id])
-            delete backEndProjectiles[id]
+        if(backEndProjectiles[id].bounces > 0){
+            backEndProjectiles[id].velocity.y = -backEndProjectiles[id].velocity.y;
+            backEndProjectiles[id].bounces--;
+        }
+        else {
+            delete backEndProjectiles[id];
+        }
     }
 }
 
