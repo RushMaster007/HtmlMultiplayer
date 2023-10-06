@@ -1,3 +1,8 @@
+const field = {
+  height: 900,
+  width: 1700,
+};
+
 //#region vars
 
 const frontEndPlayers = {}; //All players known to the client
@@ -11,13 +16,19 @@ var KeyInputMap = { E68: false, E65: false, E87: false, E83: false };
 const socket = io();
 
 //Create a Playing-area
+/**
+ * @type {HTMLCanvasElement}
+ */
 const canvas = document.getElementById("MainCanvas");
+/**
+ * @type {CanvasRenderingContext2D}
+ */
 const ctx = canvas.getContext("2d");
 
 //Set Window dimensions
-const devicePixelRatio = window.devicePixelRatio || 1;
-canvas.width = innerWidth * devicePixelRatio;
-canvas.height = innerHeight * devicePixelRatio;
+const scale = window.devicePixelRatio;
+canvas.width = field.width * scale;
+canvas.height = field.height * scale;
 
 const frontEndPlayer = frontEndPlayers[socket.id];
 
@@ -36,9 +47,9 @@ let isDead = false;
 
 socket.on("connect", () => {
   socket.emit("initCanvas", {
-    width: canvas.width,
-    height: canvas.height,
-    devicePixelRatio,
+    width: field.width,
+    height: field.height,
+    scale,
     userName,
   });
 });
@@ -220,13 +231,13 @@ function drawStaticObjects() {
 function drawMovableObjects() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#333";
-  ctx.fillRect(0, 0, 1700, 900);
+  ctx.fillRect(0, 0, field.width, field.height);
   drawPlayers();
   drawProjectiles();
   drawStaticObjects();
   if (isDead) {
     ctx.fillStyle = "#FFFFFFAA";
-    ctx.fillRect(0, 0, 1700, 900);
+    ctx.fillRect(0, 0, field.width, field.height);
   }
 }
 
