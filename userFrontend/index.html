@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML Multiplayer</title>
+    <link rel="stylesheet" href="index.css" />
+    <script src="index.js" defer></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"
+      integrity="sha512-kVlGhj2qFy+KBCFuvjBJTGUMxbdqJKs4yK2jh0e0VPhWUPiPC87bzm4THmaaIee3Oj7j6sDpTTgm2EPPiESqBg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="./common/models/Projectile.js" defer></script>
+    <script src="./common/models/Player.js" defer></script>
+    <script src="./common/models/StaticObject.js" defer></script>
+    <script src="./common/models/Tank.js" defer></script>
+    <script src="./common/models/Sps.js" defer></script>
+    <script src="./common/ClickEventListener.js" defer></script>
+  </head>
+  <body>
+    <canvas id="mainCanvas"></canvas>
+    <!-- #region username input -->
+    <div id="loginOverlay">
+      <form id="usernameForm">
+        <div>
+          <input id="userNameInput" type="text" placeholder="Username" />
+        </div>
+        <div>
+          <button id="startButton">Start!</button>
+        </div>
+      </form>
+    </div>
+    <!-- #endregion username input -->
+  </body>
+</html>
