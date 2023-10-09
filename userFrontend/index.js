@@ -19,7 +19,7 @@ const socket = io();
 /**
  * @type {HTMLCanvasElement}
  */
-const canvas = document.getElementById("MainCanvas");
+const canvas = document.getElementById("mainCanvas");
 /**
  * @type {CanvasRenderingContext2D}
  */

@@ -28,6 +28,11 @@ body {
   color: #cbd5e1;
 }
 
+div:has(> #startButton) {
+  text-align: center;
+  margin-top: 8px;
+}
+
 #startButton {
   padding: 8px 20px;
   border-radius: 100px;
