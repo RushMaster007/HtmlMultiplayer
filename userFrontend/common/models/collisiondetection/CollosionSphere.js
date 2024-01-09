@@ -1,4 +1,4 @@
-class CollosonSphere {
+class CollosonSphere extends AbstractCollosionArea {
   constructor({ x, y }) {
     if (this.constructor == StaticObject)
       throw new Error("Abstract classes can't be instantiated.");
@@ -10,7 +10,7 @@ class CollosonSphere {
     throw new Error("Method 'settype()' must be implemented.");
   }
 
-  debugDraw() {
+  DrawCollisionShape() {
     ctx.beginPath();
     ctx.fillStyle = this.color;
     this.settype();

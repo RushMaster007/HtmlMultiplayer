@@ -1,14 +1,10 @@
-const express = require("express");
-// const { stat } = require("fs");
-// const { Socket } = require('engine.io')
-const environment = require("./environments/environment");
-const http = require("http");
-const { Server } = require("socket.io");
-
-//#region vars
-
 //#region serverini
 
+const environment = require("./environments/environment");
+const express = require("express");
+const http = require("http");
+const { start } = require("repl");
+const { Server } = require("socket.io");
 const app = express();
 
 //Socket.io setup
@@ -18,26 +14,45 @@ const io = new Server(server, {
   pingTimeout: environment.pingTimeout,
 });
 
+app.use(express.static(environment.frontendFolder));
+
+server.listen(environment.port, () => {
+  console.log("Listen on Port: " + environment.port);
+  console.log("localhost:" + environment.port);
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + environment.frontendFolder);
+});
+
 //#endregion serverini
+
+//#region requires
+
+const Player = require(environment.modelFolder + "Player.js");
+const Projectile = require(environment.modelFolder + "projectile.js");
+
+//#endregion requires
+
+//#region vars
 
 const backEndPlayers = {};
 const backEndProjectiles = {};
 const backEndStaticObjects = {};
 
 let staticObjectsId = 0;
-
 let projectileId = 0;
 
 //#endregion vars
 
-///GameCicle
+/// Game-Cicle
 setInterval(() => {
   updateProjectiles();
   io.emit("updatePlayers", backEndPlayers);
   io.emit("updateProjectiles", backEndProjectiles);
 }, 15);
 
-//FireInterval
+/// Fire-Interval //TODO REPLACE
 setInterval(() => {
   for (const id in backEndPlayers) {
     try {
@@ -48,27 +63,13 @@ setInterval(() => {
   }
 }, 150);
 
-//#region serverIni
-
-app.use(express.static(environment.frontendFolder));
-
-server.listen(environment.port, () => {
-  console.log("Listen on Port: " + environment.port);
-});
-
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + environment.frontendFolder);
-});
-
-//#endregion serverIni
-
-//#region userIni
+//#region methods
 
 //Check if new User connects
 io.on("connection", (socket) => {
   console.log("a user connected");
-  socket.on("login", (username) => {
-    createUser(socket.id, username);
+  socket.on("login", (userName) => {
+    createUser(socket.id, userName);
     initCanvas(socket);
   });
 
@@ -143,18 +144,6 @@ io.on("connection", (socket) => {
   });
 });
 
-function createUser(socketid, username) {
-  backEndPlayers[socketid] = {
-    x: 1500 * Math.random() + 100,
-    y: 700 * Math.random() + 100,
-    color: `hsl(${360 * Math.random()}, 100%, 50%)`,
-    sequenceNumber: 0, //set to check all inputs not handled so far
-    canFire: false,
-    userName: username.slice(0, 20),
-    radius: 10,
-  };
-}
-
 function initCanvas(socket) {
   socket.on("initCanvas", ({ width, height, devicePixelRatio }) => {
     backEndPlayers[socket.id].canvas = {
@@ -173,10 +162,6 @@ function isInGameArea(GOTOX, GOTOY) {
   if (GOTOX < 10 || GOTOX > 1700 || GOTOY < 10 || GOTOY > 900) return false;
   return true;
 }
-
-//#endregion userIni
-
-//#region projectiles
 
 function updateProjectiles() {
   for (const id in backEndProjectiles) {
@@ -207,43 +192,46 @@ function updateProjectilePosition(id) {
 function hitdetection(id) {
   for (const playerId in backEndPlayers) {
     const backEndPlayer = backEndPlayers[playerId];
-    // console.log(backEndProjectiles[id].x)
     const DISTANCE = Math.hypot(
       backEndProjectiles[id]?.x - backEndPlayer?.x,
       backEndProjectiles[id]?.y - backEndPlayer?.y
     );
 
     //TODO: backEndProjectiles[id].radius has to be added
-    // console.log(backEndProjectiles[id].playerId + ' '+backEndPlayer.radius)
     if (
       DISTANCE < 5 + backEndPlayer.radius &&
       backEndProjectiles[id].playerId !== playerId
     ) {
       delete backEndProjectiles[id];
       playerDied(playerId);
-      // socket[playerId].emit('died','test')
-      // console.log(DISTANCE)
       break;
     }
   }
 }
 
-//#endregion projectiles
-
-//#region players
+function createUser(socketid, userName) {
+  backEndPlayers[socketid] = {
+    x: 1500 * Math.random() + 100,
+    y: 700 * Math.random() + 100,
+    color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+    sequenceNumber: 0, //set to check all inputs not handled so far
+    canFire: false,
+    userName: userName.slice(0, 20),
+    radius: 10,
+  };
+}
 
 function playerDied(playerId) {
   const BACKENDPLAYERNAME = backEndPlayers[playerId].userName;
   delete backEndPlayers[playerId];
-  setTimeout(() => {
-    createUser(playerId, BACKENDPLAYERNAME);
-    console.log("respawn");
-  }, 1000);
 }
 
-//#endregion players
-
-//#region staticBody
+function respawnUser() {
+  setTimeout(() => {
+    createUser(playerId, BACKENDPLAYERNAME);
+    console.log(backEndPlayers[playerId].userName + "respawned");
+  }, 1000);
+}
 
 ///Builds all the static objects for the level
 function buildMapObjects() {
@@ -254,7 +242,6 @@ function buildMapObjects() {
 function createStatcObject(object) {
   staticObjectsId++;
   backEndStaticObjects[staticObjectsId] = object; //Object.create(Tank, {x:1,y:1,width:1,height:1,color:'green'})
-  // backEndStaticObjects[staticObjectsId] = new
 }
 
 ///TODO Checks if someting collides with a static object
@@ -277,12 +264,16 @@ function collosionDetection(GOTOX, GOTOY) {
   // return ture
 }
 
-//#endregion staticBody
+//#endregion methods
 
-//#region ini
+//#region startup
 
-console.log("Server Loaded");
+startServer();
 
-buildMapObjects();
+///Initial function to start the server after everything is setup
+function startServer() {
+  console.log("Server Loaded");
+  buildMapObjects();
+}
 
-//#endregion ini
+//#endregion startup

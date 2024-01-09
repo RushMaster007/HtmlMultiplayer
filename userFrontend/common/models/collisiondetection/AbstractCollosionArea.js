@@ -1,7 +1,7 @@
-class CollosonPrefix {
+class AbstractCollosionArea {
   constructor({ x, y }) {
     if (this.constructor == StaticObject)
-      throw new Error("Abstract classes can't be instantiated.");
+      throw ErrorHandler.Error_AbstractClass;
     this.x = x;
     this.y = y;
   }
@@ -10,7 +10,7 @@ class CollosonPrefix {
     throw new Error("Method 'settype()' must be implemented.");
   }
 
-  debugDraw() {
+  DrawCollisionShape() {
     ctx.beginPath();
     ctx.fillStyle = this.color;
     this.settype();

@@ -114,9 +114,9 @@ function addFrontEndPlayer(id, BACKENDPLAYER) {
   frontEndPlayers[id] = new Player({
     x: BACKENDPLAYER.x,
     y: BACKENDPLAYER.y,
-    radius: 10,
+    radius: BACKENDPLAYER.radius,
     color: BACKENDPLAYER.color,
-    username: BACKENDPLAYER.userName,
+    userName: BACKENDPLAYER.userName,
     sequenceNumber: BACKENDPLAYER.sequenceNumber,
   });
 

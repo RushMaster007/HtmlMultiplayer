@@ -1,10 +1,11 @@
 class Player {
-  constructor({ x, y, radius, color, username, sequenceNumber }) {
+  constructor({ x, y, radius, color, userName, sequenceNumber = 0 }) {
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = color;
-    this.username = username;
+    this.userName = userName;
+    this.canFire = false;
     this.sequenceNumber = sequenceNumber;
   }
 
